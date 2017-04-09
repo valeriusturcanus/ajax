@@ -17,13 +17,16 @@ function loadData() {
     address = street + ',' + city;
     console.log(address);
     urlAddress = 'https://maps.googleapis.com/maps/api/streetview?size=600x300&location='+
-    address//+'&key='+'AIzaSyBs5mffewvCSY8JLB0_hxFu9m6fOjDsg8I ';
+    address
+
     $body.append('<img class="bgimg" src=' + urlAddress + '>');
     // $greeting.text(urlAddress);
     $wikiElem.text(address.toUpperCase());
 
+    var wikiAddress = 'http://en.wikipedia.org/w/api.php?action=opensearch&search='+city+'&format=json&callback=wikiCallback';
 
-    $.getJSON('https://api.nytimes.com/svc/search/v2/articlesearch.json?q='+city+'&sort=newest&api-key=bf9bf7929d7844669c66acf69aceb838',function(data){
+    // $.getJSON('https://api.nytimes.com/svc/search/v2/articlesearch.json?q='+city+'&sort=newest&api-key=bf9bf7929d7844669c66acf69aceb838',function(data){
+    $.ajax({url:'https://api.nytimes.com/svc/search/v2/articlesearch.json?q='+city+'&sort=newest&api-key=bf9bf7929d7844669c66acf69aceb838', success: function (data){
       if (data.response.docs.length>0){
 
 
@@ -41,19 +44,35 @@ function loadData() {
         // console.log($('#nytimes-header').text);
       }
 
-    })
+    }}//need to take one } if I use $getJSON instead of ajax
+  )
     .fail(function(){
       $('#nytimes-header').text('New York Times Articles Could not be found');
       });
-      $.getJSON('https://en.wikipedia.org/w/api.php?action=query&titles=liverpool&prop=revisions&rvprop=content&format=json',function(data){
-        console.log(data);
-      })
-
+      // $.getJSON('https://en.wikipedia.org/w/api.php?action=query&titles=liverpool&prop=revisions&rvprop=content&format=json',function(data){
+      //   console.log(data);
+      // })
+      $.ajax({
+        url:wikiAddress,
+        dataType:'jsonp',
+        success: function(response){
+          console.log(response);
+          for (var i = 0; i < response[1].length; i++) {
+            var urlArticle =response[3][i];
+            var wikiTitle = response[1][i];
+            var lists ='<li><a href='+urlArticle+'>'+wikiTitle+'</a> </li>';
+            $('#wikipedia-links').append(lists);
+          }
+        }
+      });
     return false;
 };
 // loadData();
 $('#form-container').submit(loadData);
 
+
+// WIKI API ADDRESS
+// 'http://en.wikipedia.org/w/api.php?action=opensearch&search='+city+'&format=json&callback=wikiCallback';
 // https://maps.googleapis.com/maps/api/streetview?size=600x300&location=46.414382,10.013988&heading=151.78&pitch
 // https://maps.googleapis.com/maps/api/streetview?size=600x300&location=46.414382,10.013988
 // article search address
